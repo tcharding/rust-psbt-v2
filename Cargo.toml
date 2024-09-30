@@ -1,0 +1,58 @@
+[package]
+name = "psbt-v2"
+version = "0.2.0"
+authors = ["Tobin C. Harding <me@tobin.cc>"]
+license = "CC0-1.0"
+repository = "https://github.com/tcharding/rust-psbt/"
+description = "Partially Signed Bitcoin Transaction, v0 and v2"
+categories = ["cryptography::cryptocurrencies"]
+keywords = [ "psbt", "bip-174", "bip174", "bip-370", "bip370"]
+readme = "README.md"
+edition = "2021"
+rust-version = "1.63.0"
+exclude = ["tests", "contrib"]
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
+
+[features]
+default = ["std"]
+std = ["bitcoin/std", "bitcoin-internals/std"]
+rand = ["bitcoin/rand"]
+rand-std = ["bitcoin/rand-std"]
+serde = ["dep:serde", "bitcoin/serde", "bitcoin-internals/serde"]
+base64 = ["bitcoin/base64"]
+
+[dependencies]
+bitcoin = { version = "0.33.0", default-features = false }
+bitcoin-internals = { version = "0.4.0", features = ["alloc"] }
+
+serde = { version = "1.0.103", default-features = false, features = [ "derive", "alloc" ], optional = true }
+
+[dev-dependencies]
+
+
+[patch.crates-io.bitcoin-addresses]
+path = "../rust-bitcoin/09-30-psbt-v2-fields/addresses"
+
+[patch.crates-io.base58ck]
+path = "../rust-bitcoin/09-30-psbt-v2-fields/base58"
+
+[patch.crates-io.bitcoin]
+path = "../rust-bitcoin/09-30-psbt-v2-fields/bitcoin"
+
+[patch.crates-io.bitcoin_hashes]
+path = "../rust-bitcoin/09-30-psbt-v2-fields/hashes"
+
+[patch.crates-io.bitcoin-internals]
+path = "../rust-bitcoin/09-30-psbt-v2-fields/internals"
+
+[patch.crates-io.bitcoin-io]
+path = "../rust-bitcoin/09-30-psbt-v2-fields/io"
+
+[patch.crates-io.bitcoin-primitives]
+path = "../rust-bitcoin/09-30-psbt-v2-fields/primitives"
+
+[patch.crates-io.bitcoin-units]
+path = "../rust-bitcoin/09-30-psbt-v2-fields/units"
