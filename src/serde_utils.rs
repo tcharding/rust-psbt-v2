@@ -73,10 +73,7 @@ pub mod btreemap_byte_values {
             ) -> Result<Self::Value, A::Error> {
                 let mut ret = BTreeMap::new();
                 while let Some((key, value)) = a.next_entry()? {
-                    ret.insert(
-                        key,
-                        FromHex::from_hex(value).map_err(serde::de::Error::custom)?,
-                    );
+                    ret.insert(key, FromHex::from_hex(value).map_err(serde::de::Error::custom)?);
                 }
                 Ok(ret)
             }

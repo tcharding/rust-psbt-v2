@@ -4,7 +4,7 @@ version = "0.2.0"
 authors = ["Tobin C. Harding <me@tobin.cc>"]
 license = "CC0-1.0"
 repository = "https://github.com/tcharding/rust-psbt/"
-description = "Partially Signed Bitcoin Transaction, v0 and v2"
+description = "Partially Signed Bitcoin Transaction Version 2"
 categories = ["cryptography::cryptocurrencies"]
 keywords = [ "psbt", "bip-174", "bip174", "bip-370", "bip370"]
 readme = "README.md"
@@ -18,20 +18,31 @@ rustdoc-args = ["--cfg", "docsrs"]
 
 [features]
 default = ["std"]
-std = ["bitcoin/std", "bitcoin-internals/std"]
+std = ["bitcoin/std", "bitcoin-internals/std", "miniscript?/std"]
 rand = ["bitcoin/rand"]
 rand-std = ["bitcoin/rand-std"]
-serde = ["dep:serde", "bitcoin/serde", "bitcoin-internals/serde"]
+serde = ["dep:serde", "bitcoin/serde", "bitcoin-internals/serde", "miniscript?/serde"]
 base64 = ["bitcoin/base64"]
 
 [dependencies]
 bitcoin = { version = "0.33.0", default-features = false }
 bitcoin-internals = { version = "0.4.0", features = ["alloc"] }
 
+# miniscript does not currently work with no-std (because miniscript uses ugly no-std feature).
+miniscript = { version = "12.0.0", default-features = false, optional = true }
 serde = { version = "1.0.103", default-features = false, features = [ "derive", "alloc" ], optional = true }
 
 [dev-dependencies]
 
+[[example]]
+name = "multisig-segwit-v0"
+
+[[example]]
+name = "separate-creator-constructor"
+
+
+[patch.crates-io.miniscript]
+path = "../rust-miniscript/dev-psbt-v2"
 
 [patch.crates-io.bitcoin-addresses]
 path = "../rust-bitcoin/09-30-psbt-v2-fields/addresses"

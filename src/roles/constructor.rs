@@ -20,6 +20,11 @@ use crate::{Input, Output, Psbt};
 pub struct Constructor<T>(Psbt, PhantomData<T>);
 
 impl<T: Mod> Constructor<T> {
+    /// Returns a PSBT [`Updater`] once construction is completed.
+    pub fn updater(self) -> Result<Updater, DetermineLockTimeError> {
+        Updater::from_psbt(self.no_more_inputs().no_more_outputs().psbt()?)
+    }
+
     /// Marks that the `Psbt` can not have any more inputs added to it.
     pub fn no_more_inputs(mut self) -> Self {
         self.0.clear_inputs_modifiable_flag();
@@ -32,17 +37,12 @@ impl<T: Mod> Constructor<T> {
         self
     }
 
-    /// Returns a PSBT [`Updater`] once construction is completed.
-    pub fn updater(self) -> Result<Updater, DetermineLockTimeError> {
-        Updater::from_psbt(self.no_more_inputs().no_more_outputs().psbt()?)
-    }
-
-    /// Returns the [`Psbt`] in its current state.
+    /// Returns the inner [`Psbt`] in its current state.
     ///
     /// This function can be used either to get the [`Psbt`] to pass to another constructor or to
     /// get the [`Psbt`] ready for update if `no_more_inputs` and `no_more_outputs` have already
     /// explicitly been called.
-    pub fn psbt(self) -> Result<Psbt, DetermineLockTimeError> {
+    pub fn into_inner(self) -> Result<Psbt, DetermineLockTimeError> {
         let _ = self.0.determine_lock_time()?;
         Ok(self.0)
     }
@@ -50,9 +50,7 @@ impl<T: Mod> Constructor<T> {
 
 impl Constructor<Modifiable> {
     /// Creates a new PSBT Creator with an empty `Psbt`.
-    pub fn new() -> Self {
-        Creator::new().constructor_modifiable()
-    }
+    pub fn new() -> Self { Creator::new().constructor_modifiable() }
 
     /// Creates a new Constructor from an already created `Psbt`.
     ///
@@ -69,9 +67,7 @@ impl Constructor<Modifiable> {
         }
     }
 
-    pub(crate) fn from_psbt_unchecked(psbt: Psbt) -> Self {
-        Self(psbt, PhantomData)
-    }
+    pub(crate) fn from_psbt_unchecked(psbt: Psbt) -> Self { Self(psbt, PhantomData) }
 
     /// Adds an input to the PSBT.
     pub fn input(mut self, input: Input) -> Self {
@@ -90,16 +86,12 @@ impl Constructor<Modifiable> {
 
 // Useful if the Creator and Constructor are a single entity.
 impl Default for Constructor<Modifiable> {
-    fn default() -> Self {
-        Self::new()
-    }
+    fn default() -> Self { Self::new() }
 }
 
 impl Constructor<InputsOnlyModifiable> {
     /// Creates a new PSBT Creator with an empty `Psbt`.
-    pub fn new() -> Self {
-        Creator::new().constructor_inputs_only_modifiable()
-    }
+    pub fn new() -> Self { Creator::new().constructor_inputs_only_modifiable() }
 
     /// Creates a new Constructor from an already created `Psbt`.
     ///
@@ -114,9 +106,7 @@ impl Constructor<InputsOnlyModifiable> {
         }
     }
 
-    pub(crate) fn from_psbt_unchecked(psbt: Psbt) -> Self {
-        Self(psbt, PhantomData)
-    }
+    pub(crate) fn from_psbt_unchecked(psbt: Psbt) -> Self { Self(psbt, PhantomData) }
 
     /// Adds an input to the PSBT.
     pub fn input(mut self, input: Input) -> Self {
@@ -128,16 +118,12 @@ impl Constructor<InputsOnlyModifiable> {
 
 // Useful if the Creator and Constructor are a single entity.
 impl Default for Constructor<InputsOnlyModifiable> {
-    fn default() -> Self {
-        Self::new()
-    }
+    fn default() -> Self { Self::new() }
 }
 
 impl Constructor<OutputsOnlyModifiable> {
     /// Creates a new PSBT Creator with an empty `Psbt`.
-    pub fn new() -> Self {
-        Creator::new().constructor_outputs_only_modifiable()
-    }
+    pub fn new() -> Self { Creator::new().constructor_outputs_only_modifiable() }
 
     /// Creates a new Constructor from an already created `Psbt`.
     ///
@@ -152,9 +138,7 @@ impl Constructor<OutputsOnlyModifiable> {
         }
     }
 
-    pub(crate) fn from_psbt_unchecked(psbt: Psbt) -> Self {
-        Self(psbt, PhantomData)
-    }
+    pub(crate) fn from_psbt_unchecked(psbt: Psbt) -> Self { Self(psbt, PhantomData) }
 
     /// Adds an output to the PSBT.
     pub fn output(mut self, output: Output) -> Self {
@@ -166,9 +150,7 @@ impl Constructor<OutputsOnlyModifiable> {
 
 // Useful if the Creator and Constructor are a single entity.
 impl Default for Constructor<OutputsOnlyModifiable> {
-    fn default() -> Self {
-        Self::new()
-    }
+    fn default() -> Self { Self::new() }
 }
 
 /// Marker for a `Constructor` with both inputs and outputs modifiable.

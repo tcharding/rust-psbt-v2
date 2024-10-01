@@ -56,15 +56,11 @@ impl std::error::Error for PsbtNotModifiableError {
 }
 
 impl From<InputsNotModifiableError> for PsbtNotModifiableError {
-    fn from(e: InputsNotModifiableError) -> Self {
-        Self::Inputs(e)
-    }
+    fn from(e: InputsNotModifiableError) -> Self { Self::Inputs(e) }
 }
 
 impl From<OutputsNotModifiableError> for PsbtNotModifiableError {
-    fn from(e: OutputsNotModifiableError) -> Self {
-        Self::Outputs(e)
-    }
+    fn from(e: OutputsNotModifiableError) -> Self { Self::Outputs(e) }
 }
 
 /// Error when passing an PSBT with inputs not modifiable to an input adding `Constructor`.
@@ -94,7 +90,42 @@ impl fmt::Display for OutputsNotModifiableError {
 
 #[cfg(feature = "std")]
 impl std::error::Error for OutputsNotModifiableError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> { None }
+}
+
+/// An error getting the funding transaction for this input.
+#[derive(Debug, Clone, PartialEq, Eq)]
+#[non_exhaustive]
+pub enum FundingUtxoError {
+    /// The vout is out of bounds for non-witness transaction.
+    OutOfBounds {
+        /// The vout used as list index.
+        vout: usize,
+        /// The length of the utxo list.
+        len: usize,
+    },
+    /// No funding utxo found.
+    MissingUtxo,
+}
+
+impl fmt::Display for FundingUtxoError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        use FundingUtxoError::*;
+
+        match *self {
+            OutOfBounds { vout, len } => write!(f, "vout {} out of bounds for tx list len: {}", vout, len),
+            MissingUtxo => write!(f, "no funding utxo found"),
+        }
+    }
+}
+
+#[cfg(feature = "std")]
+impl std::error::Error for FundingUtxoError {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
-        None
+        use FundingUtxoError::*;
+
+        match *self {
+            OutOfBounds { .. } | MissingUtxo => None,
+        }
     }
 }

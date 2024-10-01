@@ -10,12 +10,16 @@
 //! - The **Signer** role: Use the [`Signer`] type.
 //! - The **Finalizer** role: Use the `Finalizer` type (requires "miniscript" feature).
 //! - The **Extractor** role: Use the [`Extractor`] type.
-//!
-//! To combine PSBTs use either `psbt.combine_with(other)` or `v2::combine(this, that)`.
 
 mod constructor;
 mod creator;
+// mod extractor;
+#[cfg(feature = "miniscript")]
+mod finalizer
+mod signer;
 mod updater;
 
-#[allow(unused_imports)] // TODO: Clear this.
-pub use self::{constructor::Constructor, creator::Creator, updater::Updater};
+#[allow(unused_imports)] // TODO: Remove this.
+pub use self::{constructor::Constructor, creator::Creator, updater::Updater, signer::Signer, extractor::Extractor};
+#[cfg(feature = "miniscript")]
+pub use self::finalizer::Finalizer;

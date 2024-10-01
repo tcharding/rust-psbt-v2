@@ -17,7 +17,7 @@ use crate::Psbt;
 /// - You need to set the fallback lock time.
 /// - You need to set the sighash single flag.
 ///
-/// If not use the [`Constructor`]  to carry out both roles e.g., `Constructor::<Modifiable>::default()`.
+/// If not use the [`Constructor`] to carry out both roles e.g., `Constructor::<Modifiable>::default()`.
 ///
 /// See `examples/v2-separate-creator-constructor.rs`.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -25,9 +25,20 @@ use crate::Psbt;
 pub struct Creator(Psbt);
 
 impl Creator {
-    /// Creates a new PSBT Creator with an empty `Psbt`.
+    /// Creates a new PSBT Creator - modifiable with no inputs or outputs.
     pub fn new() -> Self {
-        Creator(Psbt::empty())
+        let mut psbt = Psbt {
+            tx_version: transaction::Version::TWO,
+            fallback_lock_time: absolute::LockTime::ZERO,
+            input_count: 0,     
+            output_count: 0,
+            tx_modifiable_flags: 0,
+            xpub: BTreeMap::default(),
+            inputs: vec![],
+            outputs: vec![],
+        };
+        psbt.set_inputs_modifiable_flag().set_outputs_modifiable_flag();
+        Creator(psbt)
     }
 
     /// Sets the fallback lock time.
@@ -39,18 +50,6 @@ impl Creator {
     /// Sets the "has sighash single" flag in then transaction modifiable flags.
     pub fn sighash_single(mut self) -> Self {
         self.0.set_sighash_single_flag();
-        self
-    }
-
-    /// Sets the inputs modifiable bit in the transaction modifiable flags.
-    pub fn inputs_modifiable(mut self) -> Self {
-        self.0.set_inputs_modifiable_flag();
-        self
-    }
-
-    /// Sets the outputs modifiable bit in the transaction modifiable flags.
-    pub fn outputs_modifiable(mut self) -> Self {
-        self.0.set_outputs_modifiable_flag();
         self
     }
 
@@ -72,10 +71,7 @@ impl Creator {
     /// use psbt_v2::v2::{Creator, Constructor, Modifiable};
     ///
     /// // Creator role separate from Constructor role.
-    /// let psbt = Creator::new()
-    ///     .inputs_modifiable()
-    ///     .outputs_modifiable()
-    ///     .psbt();
+    /// let psbt = Creator::new().psbt();
     /// let _constructor = Constructor::<Modifiable>::new(psbt);
     ///
     /// // However, since a single entity is likely to be both a Creator and Constructor.
@@ -85,10 +81,7 @@ impl Creator {
     /// let _constructor = Constructor::<Modifiable>::default();
     /// ```
     pub fn constructor_modifiable(self) -> Constructor<Modifiable> {
-        let mut psbt = self.0;
-        psbt.set_inputs_modifiable_flag();
-        psbt.set_outputs_modifiable_flag();
-        Constructor::<Modifiable>::from_psbt_unchecked(psbt)
+        Constructor::<Modifiable>::from_psbt_unchecked(self.0)
     }
 
     /// Builds a [`Constructor`] that can only add inputs.
@@ -112,7 +105,6 @@ impl Creator {
     /// ```
     pub fn constructor_inputs_only_modifiable(self) -> Constructor<InputsOnlyModifiable> {
         let mut psbt = self.0;
-        psbt.set_inputs_modifiable_flag();
         psbt.clear_outputs_modifiable_flag();
         Constructor::<InputsOnlyModifiable>::from_psbt_unchecked(psbt)
     }
@@ -139,21 +131,16 @@ impl Creator {
     pub fn constructor_outputs_only_modifiable(self) -> Constructor<OutputsOnlyModifiable> {
         let mut psbt = self.0;
         psbt.clear_inputs_modifiable_flag();
-        psbt.set_outputs_modifiable_flag();
         Constructor::<OutputsOnlyModifiable>::from_psbt_unchecked(psbt)
     }
 
     /// Returns the created [`Psbt`].
     ///
     /// This is only required if the Creator and Constructor are separate entities. If the Creator
-    /// is also acting as the Constructor use one of the `Self::constructor_foo` functions.
-    pub fn psbt(self) -> Psbt {
-        self.0
-    }
+    /// is also acting as the Constructor use one of the `constructor_foo` functions.
+    pub fn into_inner(self) -> Psbt { self.0 }
 }
 
 impl Default for Creator {
-    fn default() -> Self {
-        Self::new()
-    }
+    fn default() -> Self { Self::new() }
 }
